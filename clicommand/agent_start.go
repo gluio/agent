@@ -43,6 +43,7 @@ type AgentStartConfig struct {
 	NoPTY                            bool     `cli:"no-pty"`
 	Endpoint                         string   `cli:"endpoint" validate:"required"`
 	Debug                            bool     `cli:"debug"`
+	ExitWithStatus                   bool     `cli:"exit-with-status"`
 }
 
 func DefaultConfigFilePaths() (paths []string) {
@@ -142,6 +143,10 @@ var AgentStartCommand = cli.Command{
 			Usage:  "Don't allow this agent to run arbitrary console commands",
 			EnvVar: "BUILDKITE_NO_COMMAND_EVAL",
 		},
+		cli.BoolFlag{
+			Name:   "exit-with-status",
+			Usage:  "Exit the agent when job is complete, returning status of job",
+		},
 		EndpointFlag,
 		DebugFlag,
 		NoColorFlag,
@@ -181,6 +186,7 @@ var AgentStartCommand = cli.Command{
 				AutoSSHFingerprintVerification: !cfg.NoAutoSSHFingerprintVerification,
 				CommandEval:                    !cfg.NoCommandEval,
 				RunInPty:                       !cfg.NoPTY,
+				ExitWithStatus:                 cfg.ExitWithStatus,
 			},
 		}
 

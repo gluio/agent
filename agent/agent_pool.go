@@ -78,6 +78,10 @@ func (r *AgentPool) Start() error {
 	logger.Info("Disconnecting %s...", worker.Agent.Name)
 	worker.Disconnect()
 
+	if r.AgentConfiguration.ExitWithStatus {
+		os.Exit(worker.ExitStatus)
+	}
+
 	return nil
 }
 

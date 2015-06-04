@@ -8,6 +8,7 @@ import (
 	"github.com/buildkite/agent/retry"
 	"os"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"time"
 )
@@ -42,6 +43,9 @@ type JobRunner struct {
 
 	// Used to wait on various routines that we spin up
 	wg sync.WaitGroup
+
+	// Stores the exit status of the job
+	ExitStatus int
 }
 
 // Initializes the job runner
@@ -118,6 +122,10 @@ func (r *JobRunner) Run() error {
 	// Wait for the routines that we spun up to finish
 	logger.Debug("Waiting for all other routines to finish")
 	r.wg.Wait()
+
+	// Stores the exit status for the job
+	exitStatus, _ := strconv.Atoi(r.process.ExitStatus)
+	r.ExitStatus = exitStatus
 
 	logger.Info("Finished job %s", r.Job.ID)
 

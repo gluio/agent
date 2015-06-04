@@ -27,6 +27,9 @@ type AgentWorker struct {
 	// When this worker runs a job, we'll store an instance of the
 	// JobRunner here
 	jobRunner *JobRunner
+
+	// Used to track exit status of last job
+	ExitStatus int
 }
 
 // Creates the agent worker and initializes it's API Client
@@ -64,6 +67,7 @@ func (a *AgentWorker) Stop() {
 	// If ther'es a running job, kill it.
 	if a.jobRunner != nil {
 		a.jobRunner.Kill()
+		a.ExitStatus = 1
 	}
 
 	// If we have a ticker, stop it, and send a signal to the stop channel,
@@ -139,11 +143,18 @@ func (a *AgentWorker) Ping() {
 
 	// Start running the job
 	if err = a.jobRunner.Run(); err != nil {
+		a.ExitStatus = 1
 		logger.Error("Failed to run job: %s", err)
 	}
 
+	a.ExitStatus = a.jobRunner.ExitStatus
+
 	// No more job, no more runner.
 	a.jobRunner = nil
+
+	if a.AgentConfiguration.ExitWithStatus {
+		a.Stop()
+	}
 }
 
 // Disconnects the agent from the Buildkite Agent API, doesn't bother retrying
