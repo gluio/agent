@@ -29,6 +29,7 @@ type AgentWorker struct {
 	jobRunner *JobRunner
 
 	// Used to track exit status of last job
+        hasRun     bool
 	ExitStatus int
 }
 
@@ -114,6 +115,9 @@ func (a *AgentWorker) Ping() {
 
 	// If we don't have a job, there's nothing to do!
 	if ping.Job == nil {
+		if a.hasRun && a.AgentConfiguration.ExitWithStatus {
+			a.Stop()
+		}
 		return
 	}
 
@@ -151,10 +155,7 @@ func (a *AgentWorker) Ping() {
 
 	// No more job, no more runner.
 	a.jobRunner = nil
-
-	if a.AgentConfiguration.ExitWithStatus {
-		a.Stop()
-	}
+	a.hasRun = true
 }
 
 // Disconnects the agent from the Buildkite Agent API, doesn't bother retrying
